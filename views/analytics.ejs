@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <title>Analytics</title>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Meat Pricing App</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link <%= currentRoute === '/' ? 'active' : '' %>" href="/">Add Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= currentRoute === '/view-records' ? 'active' : '' %>" href="/view-records">View Records</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= currentRoute === '/manage-shops' ? 'active' : '' %>" href="/manage-shops">Manage Shops</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= currentRoute === '/manage-products' ? 'active' : '' %>" href="/manage-products">Manage Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= currentRoute === '/analytics' ? 'active' : '' %>" href="/analytics">Analytics</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Analytics</h2>
+  <form id="analyticsForm" action="/analytics" method="get" class="mb-4">
+    <div class="row">
+      <!-- Location Dropdown -->
+      <div class="col-md-4">
+        <label for="location" class="form-label">Location</label>
+        <select name="location" id="location" class="form-select">
+          <option value="">-- All Locations --</option>
+          <% locations.forEach(loc => { %>
+            <option value="<%= loc %>"><%= loc %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <!-- Category Dropdown -->
+      <div class="col-md-4">
+        <label for="category" class="form-label">Category</label>
+        <select name="category" id="category" class="form-select">
+          <option value="">-- All Categories --</option>
+          <% categories.forEach(cat => { %>
+            <option value="<%= cat %>" <%= cat === category ? 'selected' : '' %>><%= cat %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <!-- Product Dropdown -->
+      <div class="col-md-4">
+        <label for="product" class="form-label">Product</label>
+        <select name="product" id="product" class="form-select">
+          <option value="">-- All Products --</option>
+          <% products.forEach(prod => { %>
+            <option value="<%= prod %>" <%= prod === product ? 'selected' : '' %>><%= prod %></option>
+          <% }); %>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Get Analytics</button>
+  </form>
+
+  <!-- Metrics -->
+  <div id="analyticsResults" class="mt-4">
+    <h4>Results</h4>
+    <p>Average Price: <span id="avgPrice"></span></p>
+    <p>Highest Price: <span id="highPrice"></span></p>
+    <p>Lowest Price: <span id="lowPrice"></span></p>
+    <p>Median Price: <span id="medianPrice"></span></p>
+    <p>Mode Price: <span id="modePrice"></span></p>
+  </div>
+
+  <!-- Graph -->
+  <canvas id="analyticsChart" class="mt-4"></canvas>
+</div>
+
+<script>
+  document.getElementById('analyticsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Collect the form values
+    const location = document.getElementById('location').value || '';
+    const category = document.getElementById('category').value || '';
+    const product = document.getElementById('product').value || '';
+
+    // Construct the URL with query parameters
+    const query = `location=${encodeURIComponent(location)}&category=${encodeURIComponent(category)}&product=${encodeURIComponent(product)}`;
+
+    // Fetch analytics data
+    const response = await fetch(`/analytics-data?${query}`);
+    const data = await response.json();
+
+    if (data.message) {
+      alert(data.message);
+      return;
+    }
+
+    // Update the analytics results
+    document.getElementById('avgPrice').textContent = data.averagePrice.toFixed(2);
+    document.getElementById('highPrice').textContent = data.highestPrice.toFixed(2);
+    document.getElementById('lowPrice').textContent = data.lowestPrice.toFixed(2);
+    document.getElementById('medianPrice').textContent = data.median.toFixed(2);
+    document.getElementById('modePrice').textContent = data.mode.toFixed(2);
+
+    // Render the chart
+    new Chart(document.getElementById('analyticsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Average', 'Highest', 'Lowest', 'Median', 'Mode'],
+        datasets: [
+          {
+            label: 'Price Analysis',
+            data: [data.averagePrice, data.highestPrice, data.lowestPrice, data.median, data.mode],
+            backgroundColor: ['blue', 'red', 'green', 'orange', 'purple'],
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          datalabels: {
+            color: 'black',
+            anchor: 'end',
+            align: 'top',
+            formatter: (value) => value.toFixed(2),
+            font: { weight: 'bold' },
+          },
+        },
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+          },
+        },
+      },
+      plugins: [ChartDataLabels], // Register the Data Labels plugin
+    });
+  });
+</script>
+</body>
+</html>

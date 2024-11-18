@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Manage Shops</title>
+</head>
+<body>
+<!-- Line 1: Add Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">Meat Pricing App</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/' ? 'active' : '' %>" href="/">Add Products</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/view-records' ? 'active' : '' %>" href="/view-records">View Records</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/manage-shops' ? 'active' : '' %>" href="/manage-shops">Manage Shops</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/manage-products' ? 'active' : '' %>" href="/manage-products">Manage Products</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/analytics' ? 'active' : '' %>" href="/analytics">Analytics</a>
+          </li>          
+        </ul>
+      </div>
+    </div>
+  </nav>
+  
+
+<div class="container mt-4">
+  <h2>Manage Shops</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% shops.forEach(shop => { %>
+        <tr>
+          <td><%= shop.location %></td>
+          <td><%= shop.name %></td>
+          <td>
+            <a href="/update-shop/<%= shop._id %>" class="btn btn-warning btn-sm">Edit</a>
+            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" 
+              data-id="<%= shop._id %>" data-name="<%= shop.name %>">Delete</button>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <span id="itemName"></span>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <a id="confirmDeleteButton" class="btn btn-danger">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const deleteModal = document.getElementById('deleteModal');
+  deleteModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget; // Button that triggered the modal
+    const itemId = button.getAttribute('data-id');
+    const itemName = button.getAttribute('data-name');
+    
+    // Update modal content
+    const itemNameSpan = deleteModal.querySelector('#itemName');
+    const confirmDeleteButton = deleteModal.querySelector('#confirmDeleteButton');
+    
+    itemNameSpan.textContent = itemName;
+    confirmDeleteButton.href = `/delete-shop/${itemId}`;
+  });
+</script>
+</body>
+</html>

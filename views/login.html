@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Login</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f8f9fa;
+      margin: 0;
+    }
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      margin: auto;
+    }
+    .numpad button {
+      width: 100%;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 8px;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .numpad button:active {
+      transform: scale(0.95);
+      background-color: #0056b3;
+    }
+    .numpad .action {
+      grid-column: span 3;
+      background-color: #6c757d;
+    }
+    .numpad .action:active {
+      background-color: #495057;
+    }
+    .pin-display {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+      letter-spacing: 5px;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1 class="text-center mb-4">Enter PIN</h1>
+    <div id="pinDisplay" class="pin-display">●●●●</div>
+    <div class="numpad">
+      <!-- Number Buttons -->
+      <button onclick="pressKey('1')">1</button>
+      <button onclick="pressKey('2')">2</button>
+      <button onclick="pressKey('3')">3</button>
+      <button onclick="pressKey('4')">4</button>
+      <button onclick="pressKey('5')">5</button>
+      <button onclick="pressKey('6')">6</button>
+      <button onclick="pressKey('7')">7</button>
+      <button onclick="pressKey('8')">8</button>
+      <button onclick="pressKey('9')">9</button>
+      <button onclick="clearPin()">Clear</button>
+      <button onclick="pressKey('0')">0</button>
+      <button class="action" onclick="submitPin()">Enter</button>
+    </div>
+  </div>
+
+  <script>
+    const pinDisplay = document.getElementById('pinDisplay');
+    let pin = '';
+
+    // Simulated correct PIN
+    const correctPin = '1234';
+
+    function pressKey(key) {
+      if (pin.length < 4) {
+        pin += key;
+        updatePinDisplay();
+      }
+    }
+
+    function clearPin() {
+      pin = '';
+      updatePinDisplay();
+    }
+
+    function updatePinDisplay() {
+      pinDisplay.textContent = '●'.repeat(pin.length).padEnd(4, '●');
+    }
+
+    async function submitPin() {
+      if (pin.length === 4) {
+        try {
+          // Send the PIN to the server
+          const response = await fetch('/validate-pin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ pin }),
+          });
+    
+          const data = await response.json();
+    
+          if (data.success) {
+            // Redirect to Add Product page on success
+            window.location.href = '/add-products';
+          } else {
+            // Show error message if PIN is incorrect
+            alert(data.message || 'Incorrect PIN. Please try again.');
+            clearPin();
+          }
+        } catch (error) {
+          alert('An error occurred while validating the PIN. Please try again.');
+          console.error(error);
+        }
+      } else {
+        alert('Please enter a 4-digit PIN.');
+      }
+    }
+    
+  </script>
+</body>
+</html>

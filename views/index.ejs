@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Product Entry</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">Meat Pricing App</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/' ? 'active' : '' %>" href="/">Add Products</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/view-records' ? 'active' : '' %>" href="/view-records">View Records</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/manage-shops' ? 'active' : '' %>" href="/manage-shops">Manage Shops</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/manage-products' ? 'active' : '' %>" href="/manage-products">Manage Products</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentRoute === '/analytics' ? 'active' : '' %>" href="/analytics">Analytics</a>
+          </li>          
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Shop Selection Form -->
+  <form action="/submit-shop" method="post">
+    <button type="button" class="btn btn-primary mt-3" onclick="showNewShopForm()">Add New Shop</button>
+  </form>
+
+  <!-- New Shop Form (Initially Hidden) -->
+  <div id="newShopForm" style="display: none; margin-top: 10px;">
+    <form action="/submit-shop" method="post">
+      <div>
+        <label for="shopLocation">Shop Location:</label>
+        <input type="text" name="shopLocation" id="shopLocation" required>
+      </div>
+      <div style="margin-top: 10px;">
+        <label for="shopName">Shop Name:</label>
+        <input type="text" name="shopName" id="shopName" required>
+      </div>
+      <button type="submit" class="btn btn-success mt-3">Save Shop</button>
+    </form>
+  </div>
+
+  <!-- Product Entry Form -->
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card">
+          <div class="card-header">
+            <h2>Add Products</h2>
+          </div>
+          <div class="card-body">
+            <form id="productForm" action="/submit-products" method="post">
+              <input type="hidden" id="selectedShopId" name="shopId"> <!-- Hidden input for shop ID -->
+              <div class="mb-3">
+                <label for="shopSelect" class="form-label">Select Shop</label>
+                <select id="shopSelect" name="shopId" class="form-select" required>
+                  <option value="">-- Select an Existing Shop --</option>
+                  <% shops.forEach(shop => { %>
+                    <option value="<%= shop._id %>"><%= shop.name %> - <%= shop.location %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <div id="productRows">
+                <!-- Product Rows Will Be Dynamically Added Here -->
+              </div>
+              <div>
+                <button type="button" class="btn btn-primary mt-3" id="addProductButton">Add Product</button>
+              </div>
+              <div>
+                <button type="submit" class="btn btn-success mt-3">Submit Products</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server-side productOptions passed to client-side JavaScript -->
+  <script>
+    const productOptions = <%- JSON.stringify(productOptions || {}) %>; // Pass the product options object
+  </script>
+
+  <script>
+    document.getElementById('addProductButton').addEventListener('click', () => {
+      addProductRow(); // Add a new product row dynamically
+    });
+
+    document.getElementById('shopSelect').addEventListener('change', function () {
+      document.getElementById('selectedShopId').value = this.value; // Update the hidden shop ID field
+    });
+
+    function addProductRow() {
+      const productRows = document.getElementById('productRows');
+      const newRow = document.createElement('div');
+      newRow.className = 'row mb-3';
+
+      const categories = Object.keys(productOptions);
+      let categoryOptions = categories.map(category => `<option value="${category}">${category}</option>`).join('');
+      categoryOptions += '<option value="Others">Others</option>';
+
+      newRow.innerHTML = `
+        <div class="col-md-3">
+          <label>Meat Category:</label>
+          <select name="meatCategory[]" class="form-select meatCategory" required onchange="updateMeatCategoryOptions(this)">
+            <option value="">-- Select Meat Category --</option>
+            ${categoryOptions}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <input type="text" name="customMeatCategory[]" class="form-control customMeatCategory" placeholder="Enter custom meat category" style="display: none;">
+        </div>
+        <div class="col-md-3">
+          <label>Product:</label>
+          <select name="product[]" class="form-select product" required></select>
+          <input type="text" name="customProduct[]" class="form-control customProduct" placeholder="Enter custom product name" style="display: none;">
+        </div>
+        <div class="col-md-2">
+          <label>Price per Kg:</label>
+          <input type="number" step="0.01" name="pricePerKg[]" class="form-control" required>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">Remove</button>
+        </div>
+      `;
+      productRows.appendChild(newRow);
+    }
+
+    function removeProductRow(button) {
+      button.parentNode.parentNode.remove();
+    }
+
+    function updateMeatCategoryOptions(select) {
+      const row = select.closest('.row');
+      const customMeatCategory = row.querySelector('.customMeatCategory');
+      const productSelect = row.querySelector('.product');
+      const customProduct = row.querySelector('.customProduct');
+
+      if (select.value === "Others") {
+        customMeatCategory.style.display = 'block';
+        customMeatCategory.required = true;
+
+        productSelect.innerHTML = '';
+        productSelect.style.display = 'none';
+        productSelect.required = false;
+
+        customProduct.style.display = 'block';
+        customProduct.required = true;
+      } else {
+        customMeatCategory.style.display = 'none';
+        customMeatCategory.required = false;
+
+        productSelect.style.display = 'block';
+        productSelect.required = true;
+        customProduct.style.display = 'none';
+        customProduct.required = false;
+
+        updateProductOptions(select);
+      }
+    }
+
+    function updateProductOptions(select) {
+      const row = select.closest('.row');
+      const productSelect = row.querySelector('.product');
+      const customProduct = row.querySelector('.customProduct');
+      const meatCategory = select.value;
+
+      productSelect.innerHTML = '';
+
+      if (productOptions[meatCategory]) {
+        productOptions[meatCategory].forEach(product => {
+          const option = document.createElement('option');
+          option.value = product;
+          option.textContent = product;
+          productSelect.appendChild(option);
+        });
+
+        const otherOption = document.createElement('option');
+        otherOption.value = "custom";
+        otherOption.textContent = "Others (Specify Below)";
+        productSelect.appendChild(otherOption);
+
+        productSelect.value = '';
+      }
+
+      productSelect.addEventListener('change', () => {
+        customProduct.style.display = productSelect.value === "custom" ? 'block' : 'none';
+      });
+    }
+
+    function showNewShopForm() {
+      document.getElementById('newShopForm').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
