@@ -1,11 +1,13 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const express = require('express');
 const session = require('express-session'); // to store shop ID in session
 const bodyParser = require('body-parser');
 const path = require('path');
 const mongoose = require('mongoose');
-const mongoUri = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 const Shop = require('./models/shop');
 const Product = require('./models/product');
 const Price = require('./models/price');
@@ -17,8 +19,6 @@ const ProductOption = require('./models/productOption');
 const PORT = process.env.PORT || 3000;
 
 // Use the environment variable for the connection string
-const MONGODB_URI = process.env.MONGODB_URI;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
@@ -62,7 +62,7 @@ app.get('/login', (req, res) => {
 });
 
 // Main form with shops list - this will render index.ejs
-app.get('/', async (req, res) => {
+app.get('/login', async (req, res) => {
   try {
     const shops = await Shop.find();
     const productOptionsData = await ProductOption.find();
