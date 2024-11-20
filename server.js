@@ -8,7 +8,6 @@ const Product = require('./models/product');
 const Price = require('./models/price');
 
 const app = express();
-const PORT = 3000;
 
 const ProductOption = require('./models/productOption');
 
