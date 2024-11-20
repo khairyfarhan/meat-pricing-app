@@ -62,7 +62,7 @@ app.get('/login', (req, res) => {
 });
 
 // Main form with shops list - this will render index.ejs
-app.get('/login', async (req, res) => {
+app.get('/', async (req, res) => {
   try {
     const shops = await Shop.find();
     const productOptionsData = await ProductOption.find();
