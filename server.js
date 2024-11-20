@@ -12,6 +12,10 @@ const PORT = 3000;
 
 const ProductOption = require('./models/productOption');
 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
 // MongoDB connection (make sure it's already established before initializing)
 mongoose.connect('mongodb://localhost:27017/meatPricingApp');
 mongoose.connection.on('connected', async () => {
