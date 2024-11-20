@@ -12,7 +12,7 @@ const app = express();
 const ProductOption = require('./models/productOption');
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 // MongoDB connection (make sure it's already established before initializing)
