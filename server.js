@@ -1,8 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session'); // to store shop ID in session
 const bodyParser = require('body-parser');
 const path = require('path');
 const mongoose = require('mongoose');
+const mongoUri = process.env.MONGODB_URI;
 const Shop = require('./models/shop');
 const Product = require('./models/product');
 const Price = require('./models/price');
@@ -13,15 +16,21 @@ const ProductOption = require('./models/productOption');
 
 const PORT = process.env.PORT || 3000;
 
+// Use the environment variable for the connection string
+const MONGODB_URI = process.env.MONGODB_URI;
 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // MongoDB connection (make sure it's already established before initializing)
-mongoose.connect('mongodb://localhost:27017/meatPricingApp');
-mongoose.connection.on('connected', async () => {
-  console.log('Connected to MongoDB');
-  await initializeProductOptions(); // Initialize product options on server start
-});
-mongoose.connection.on('error', (err) => console.log('MongoDB connection error:', err));
+mongoose
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 async function initializeProductOptions() {
   const defaultOptions = [
@@ -532,6 +541,3 @@ app.post('/validate-pin', (req, res) => {
     return res.status(401).json({ success: false, message: 'Incorrect PIN.' });
   }
 });
-
-// Start the server
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
